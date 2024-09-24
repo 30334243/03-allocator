@@ -1,0 +1,218 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 22,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "config-default",
+            "hidden": true,
+            "installDir": "${sourceDir}/../build/install",
+            "cacheVariables": {
+                "PROJECT_VERSION_PATCH": "$env{GITHUB_RUN_NUMBER}"
+            }
+        },
+        {
+            "name": "windows-config-default",
+            "hidden": true,
+            "inherits": "config-default",
+            "cacheVariables": {
+                "WINDOWS_SPECIFIC_FLAG": "ON"
+            },
+            "vendor": {
+                "jetbrains.com/clion": {
+                    "toolchain": "Visual Studio"
+                }
+            },
+            "generator": "Visual Studio 17 2022"
+        },
+        {
+            "name": "windows-config-debug",
+            "inherits": "windows-config-default",
+            "binaryDir": "${sourceDir}/../build/windows-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "windows-config-release",
+            "inherits": "windows-config-default",
+            "binaryDir": "${sourceDir}/../build/windows-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "wsl-config-default",
+            "hidden": true,
+            "inherits": "config-default",
+            "generator": "Unix Makefiles",
+            "cacheVariables": {
+                "WSL_SPECIFIC_FLAG": "ON"
+            },
+            "vendor": {
+                "jetbrains.com/clion": {
+                    "toolchain": "WSL"
+                }
+            }
+        },
+        {
+            "name": "wsl-config-debug",
+            "inherits": "wsl-config-default",
+            "binaryDir": "${sourceDir}/../build/wsl-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "wsl-config-release",
+            "inherits": "wsl-config-default",
+            "binaryDir": "${sourceDir}/../build/wsl-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "build-default",
+            "hidden": true,
+            "configurePreset": "config-default",
+            "jobs": 4
+        },
+        {
+            "name": "windows-build-debug",
+            "inherits": "build-default",
+            "configurePreset": "windows-config-debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "windows-build-release",
+            "inherits": "build-default",
+            "configurePreset": "windows-config-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "wsl-build-debug",
+            "inherits": "build-default",
+            "configurePreset": "wsl-config-debug"
+        },
+        {
+            "name": "wsl-build-release",
+            "inherits": "build-default",
+            "configurePreset": "wsl-config-release"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "test-default",
+            "hidden": false,
+            "configurePreset": "config-default",
+            "output": {
+                "outputOnFailure": true,
+                "verbosity": "extra"
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "rerunFailed": true
+            }
+        },
+        {
+            "name": "windows-test-release",
+            "inherits": "test-default",
+            "configurePreset": "windows-config-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "windows-test-debug",
+            "inherits": "test-default",
+            "configurePreset": "windows-config-debug",
+            "configuration": "Debug"
+
+        },
+        {
+            "name": "wsl-test-release",
+            "inherits": "test-default",
+            "configurePreset": "wsl-config-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "wsl-test-debug",
+            "inherits": "test-default",
+            "configurePreset": "wsl-config-debug",
+            "configuration": "Debug"
+
+        }
+    ],
+    "packagePresets": [
+        {
+            "name": "package-default",
+            "hidden": true,
+            "configurePreset": "config-default",
+            "packageDirectory": "${sourceDir}/../build/install"
+        },
+        {
+            "name": "windows-package",
+            "inherits": "package-default",
+            "configurePreset": "windows-config-release",
+            "generators": [
+                "ZIP"
+            ]
+        },
+        {
+            "name": "wsl-package",
+            "inherits": "package-default",
+            "configurePreset": "wsl-config-release",
+            "generators": [
+                "DEB"
+            ]
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "windows-ci",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "windows-config-release"
+                },
+                {
+                    "type": "build",
+                    "name": "windows-build-release"
+                },
+                {
+                    "type": "test",
+                    "name": "windows-test-release"
+                },
+                {
+                    "type": "package",
+                    "name": "windows-package"
+                }
+            ]
+        },
+        {
+            "name": "wsl-ci",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "wsl-config-release"
+                },
+                {
+                    "type": "build",
+                    "name": "wsl-build-release"
+                },
+                {
+                    "type": "test",
+                    "name": "wsl-test-release"
+                },
+                {
+                    "type": "package",
+                    "name": "wsl-package"
+                }
+            ]
+        }
+    ]
+}
